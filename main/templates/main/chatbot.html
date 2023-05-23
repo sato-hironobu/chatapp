@@ -1,0 +1,93 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block style %}
+<link rel="stylesheet" href={% static "css/chatbot.css" %}>
+{% endblock %}
+
+{% block content %}
+
+    <h2>チャットボット</h2>
+    <div id="dialog">
+        {% for item in history %}
+            {% if item.is_from_bot %}
+            <p class="bot message">{{ item.message|safe }}</p>
+            {% else %}
+            <p class="user message">{{ item.message|safe }}</p>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <hr>
+
+    <form id="ajax-search" action="{% url 'main:search' %}" method="POST">
+        <input type="text" id="search_word" required>
+        <button type="submit" >Send</button>
+        {% csrf_token %}
+    </form>
+
+{% endblock %}
+
+{% block extrajs %}
+    <script>
+        const w = document.querySelector("#dialog");
+        w.scrollTo(0, w.scrollHeight);
+
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Check if this cookie string begin with the "name" we want
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        var csrftoken = getCookie('csrftoken');
+
+        function csrfSafeMethod(method) {
+            // these HTTP methods do not require CSRF protection
+            return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+        }
+
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+
+        $('#ajax-search').on('submit', e => {
+            e.preventDefault();
+
+            $.ajax({
+                'url': '{% url "main:search" %}',
+                'type': 'POST',
+                'data': {'search_word': $('#search_word').val()},
+                'dataType': 'json'
+            }).done(response => {
+                // The response is returned by 'search' view.
+                for (let item of response.context) {
+                    let p = null;
+                    if (item.from === "user") {
+                        p = $('<p>', {html: item.message, class: "user message"});
+                    } else if (item.from === "bot") {
+                        p = $('<p>', {html: item.message, class: "bot message"});
+                    }
+                    $('#dialog').append(p);
+                }
+
+                w.scrollTo(0, w.scrollHeight);
+                $('#search_word').val('');
+            });           
+        });
+
+    </script>
+{% endblock %}

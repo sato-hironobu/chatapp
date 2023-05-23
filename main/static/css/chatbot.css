@@ -1,0 +1,14 @@
+body {
+    margin: 20px 20px;
+}
+#dialog {
+    height: 60vh;
+    overflow-y: scroll;
+}
+.message {
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+.user {
+    text-align: right;
+}
