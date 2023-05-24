@@ -1,13 +1,33 @@
 body {
     margin: 20px 20px;
 }
+.title {
+    text-align: center;
+}
 #dialog {
     height: 60vh;
     overflow-y: scroll;
 }
-.message {
-    margin-top: 10px;
+.flex-wrapper {
+    display: flex;
+    justify-content: right;
+}
+.wrapper {
+    width: 500px;
+    padding: 20px;
+    margin-top: 20px;
     margin-bottom: 20px;
+    border: 1px solid black;
+    border-radius: 10px;
+}
+.message {
+    min-width: 400px;
+    max-width: 400px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding: 5px;
+    border: 1px solid black;
+    border-radius: 10px;
 }
 .user {
     text-align: right;

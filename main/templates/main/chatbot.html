@@ -7,29 +7,29 @@
 
 {% block content %}
 
-    <h2>チャットボット</h2>
+    <h2 class="title">チャットボット</h2>
     <div id="dialog">
-        {% for item in history %}
-            {% if item.is_from_bot %}
-            <p class="bot message">{{ item.message|safe }}</p>
-            {% else %}
-            <p class="user message">{{ item.message|safe }}</p>
-            {% endif %}
+        <div class="wrapper">
+        {% for item in classes %}
+            <p class="bot message category" data-level="Class">{{ item.name }}</p>
         {% endfor %}
+        </div>
     </div>
 
     <hr>
 
     <form id="ajax-search" action="{% url 'main:search' %}" method="POST">
         <input type="text" id="search_word" required>
-        <button type="submit" >Send</button>
+        <button type="submit" >送信</button>
         {% csrf_token %}
     </form>
 
 {% endblock %}
 
 {% block extrajs %}
+
     <script>
+        // フォーム部分
         const w = document.querySelector("#dialog");
         w.scrollTo(0, w.scrollHeight);
 
@@ -39,7 +39,6 @@
                 var cookies = document.cookie.split(';');
                 for (var i = 0; i < cookies.length; i++) {
                     var cookie = jQuery.trim(cookies[i]);
-                    // Check if this cookie string begin with the "name" we want
                     if (cookie.substring(0, name.length + 1) === (name + '=')) {
                         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                         break;
@@ -52,7 +51,6 @@
         var csrftoken = getCookie('csrftoken');
 
         function csrfSafeMethod(method) {
-            // these HTTP methods do not require CSRF protection
             return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
         }
 
@@ -73,15 +71,26 @@
                 'data': {'search_word': $('#search_word').val()},
                 'dataType': 'json'
             }).done(response => {
-                // The response is returned by 'search' view.
                 for (let item of response.context) {
                     let p = null;
                     if (item.from === "user") {
-                        p = $('<p>', {html: item.message, class: "user message"});
+                        let f_div = $('<div>', {class: "flex-wrapper"});
+                        p = $('<p>', {text: item.message, class: "user message"});
+                        f_div.append(p);
+                        $('#dialog').append(f_div);
                     } else if (item.from === "bot") {
-                        p = $('<p>', {html: item.message, class: "bot message"});
+                        if (item.type === "info") {
+                            p = $('<p>', {text: item.message, class: "bot message"});
+                            $('#dialog').append(p);
+                        } else if (item.type == "answer") {
+                            let div = $('<div>', {class: "wrapper"});
+                            p = $('<p>', {text: item.question, class: "bot message"});
+                            $(div).append(p);
+                            p = $('<p>', {text: item.answer, class: "bot message"});
+                            $(div).append(p);
+                            $('#dialog').append(div);
+                        }
                     }
-                    $('#dialog').append(p);
                 }
 
                 w.scrollTo(0, w.scrollHeight);
@@ -90,4 +99,43 @@
         });
 
     </script>
+
+    <script>
+        // カテゴリ選択部分
+        function fetch_next(p) {
+            $.ajax({
+                'url': '{% url "main:select_category" %}',
+                'type': 'POST',
+                'data': {
+                    'level': $(p).data("level"),
+                    'name': $(p).text()
+                },
+                'dataType': 'json'
+            }).done(response => {
+                if (response.finished) {
+                    let div = $('<div>', {class: "wrapper"})
+                    let p = $('<p>', {text: "【質問】" + response.context[0].question, class: "bot message"});
+                    $(div).append(p);
+                    p = $('<p>', {text: "【回答】" + response.context[0].answer, class: "bot message"});
+                    $(div).append(p);
+                    $('#dialog').append(div);
+                } else {
+                    let div = $('<div>', {class: "wrapper"})
+                    for (let item of response.context) {
+                        let p = $('<p>', {text: item.name, class: "bot message category", "data-level": item.level});
+                        $(p).on("click", e => {fetch_next(p);});
+                        div.append(p);
+                    }
+                    $('#dialog').append(div);
+                }
+
+                w.scrollTo(0, w.scrollHeight);
+            });  
+        }
+
+        for (let p of $(".category"))
+            $(p).on("click", e => {fetch_next(p);});
+
+    </script>
+
 {% endblock %}
