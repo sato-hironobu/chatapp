@@ -34,11 +34,11 @@
         w.scrollTo(0, w.scrollHeight);
 
         function getCookie(name) {
-            var cookieValue = null;
+            let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
-                var cookies = document.cookie.split(';');
-                for (var i = 0; i < cookies.length; i++) {
-                    var cookie = jQuery.trim(cookies[i]);
+                let cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    let cookie = jQuery.trim(cookies[i]);
                     if (cookie.substring(0, name.length + 1) === (name + '=')) {
                         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                         break;
@@ -48,7 +48,7 @@
             return cookieValue;
         }
 
-        var csrftoken = getCookie('csrftoken');
+        let csrftoken = getCookie('csrftoken');
 
         function csrfSafeMethod(method) {
             return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
@@ -69,7 +69,7 @@
                 'url': '{% url "main:search" %}',
                 'type': 'POST',
                 'data': {'search_word': $('#search_word').val()},
-                'dataType': 'json'
+                'dataType': 'json',
             }).done(response => {
                 for (let item of response.context) {
                     let p = null;
@@ -102,7 +102,7 @@
 
     <script>
         // カテゴリ選択部分
-        function fetch_next(p) {
+        function fetch_next(p) {.
             $.ajax({
                 'url': '{% url "main:select_category" %}',
                 'type': 'POST',
@@ -110,17 +110,17 @@
                     'level': $(p).data("level"),
                     'name': $(p).text()
                 },
-                'dataType': 'json'
+                'dataType': 'json',
             }).done(response => {
                 if (response.finished) {
-                    let div = $('<div>', {class: "wrapper"})
+                    let div = $('<div>', {class: "wrapper"});
                     let p = $('<p>', {text: "【質問】" + response.context[0].question, class: "bot message"});
                     $(div).append(p);
                     p = $('<p>', {text: "【回答】" + response.context[0].answer, class: "bot message"});
                     $(div).append(p);
                     $('#dialog').append(div);
                 } else {
-                    let div = $('<div>', {class: "wrapper"})
+                    let div = $('<div>', {class: "wrapper"});
                     for (let item of response.context) {
                         let p = $('<p>', {text: item.name, class: "bot message category", "data-level": item.level});
                         $(p).on("click", e => {fetch_next(p);});
@@ -130,7 +130,7 @@
                 }
 
                 w.scrollTo(0, w.scrollHeight);
-            });  
+            });
         }
 
         for (let p of $(".category"))
